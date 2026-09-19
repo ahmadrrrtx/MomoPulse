@@ -10,35 +10,44 @@ import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useBalance, useScan } from "@/hooks/useFeed";
 import { useTerminal } from "@/store/terminal";
+import { useTx } from "@/hooks/useTx";
+import { runSponsoredClaim, sweepClaims, type FlowParams } from "@/lib/txflow";
+import { toast } from "@/store/toasts";
 import { rawToUi } from "@/core/format";
 import { C } from "@/core/constants";
 import { CopyButton, Skeleton, Spinner } from "./ui";
 import type { PositionView } from "@/core/positions";
+import type { ClaimKind } from "@/clients/momoswap";
 
 type Tab = "positions" | "claims" | "creator";
 
-function ActionButton({ v }: { v: PositionView }) {
+function claimKindOf(v: PositionView): ClaimKind | null {
+  const k = v.action?.kind;
+  if (k === "fair") return "fair";
+  if (k === "graduated_tokens") return "graduated_tokens";
+  if (k === "winner") return v.expiryMode === "jackpot" ? "jackpot" : "survivor";
+  return null;
+}
+
+function ActionButton({ v, onAct, busy }: { v: PositionView; onAct: (v: PositionView) => void; busy: boolean }) {
   if (!v.action) return <span className="num text-[10px]" style={{ color: "var(--dim)" }}>hold</span>;
+  const kind = v.action.kind;
   const label =
-    v.action.kind === "sell"
-      ? "sell"
-      : v.action.kind === "graduated_tokens"
-        ? "claim tokens"
-        : v.action.kind === "fair"
-          ? "claim refund"
-          : v.action.kind === "winner"
-            ? "claim prize"
-            : v.action.kind === "creator_fees"
-              ? "claim fees"
-              : v.action.kind;
+    kind === "sell" ? "sell ↗" : kind === "graduated_tokens" ? "claim tokens" : kind === "fair" ? "claim refund" : kind === "winner" ? "claim prize" : kind;
+  const actionable = kind !== "sell";
   return (
-    <button className="btn !px-2 !py-1 text-[10px]" disabled title={`${v.action.reason} — signing ships in Phase 3`}>
-      {label} 
+    <button
+      className="btn !px-2 !py-1 text-[10px]"
+      disabled={!actionable || busy}
+      title={kind === "sell" ? "sell from the execution panel (center-right)" : `${v.action.reason} — gasless via relayer when available`}
+      onClick={() => onAct(v)}
+    >
+      {label}
     </button>
   );
 }
 
-function PositionRow({ v }: { v: PositionView }) {
+function PositionRow({ v, onAct, busy }: { v: PositionView; onAct: (v: PositionView) => void; busy: boolean }) {
   const pnlNeg = (v.pnlRaw ?? "0").startsWith("-");
   return (
     <div className="border-b p-2.5" style={{ borderColor: "var(--line)" }}>
@@ -49,7 +58,7 @@ function PositionRow({ v }: { v: PositionView }) {
         <span className={`badge badge-${v.status}`}>{v.status}</span>
         {v.expiryMode !== "dead" && <span className="badge badge-neutral">{v.expiryMode}</span>}
         <span className="ml-auto">
-          <ActionButton v={v} />
+          <ActionButton v={v} onAct={onAct} busy={busy} />
         </span>
       </div>
       <div className="num mt-1.5 grid grid-cols-2 gap-x-3 gap-y-0.5 text-[11px]">
@@ -103,6 +112,92 @@ export function PositionsDrawer() {
   const wallet = publicKey?.toBase58() ?? (manual.trim().length > 30 ? manual.trim() : null);
   const scan = useScan(wallet);
   const balance = useBalance(wallet);
+  const { signer, connection, reconcile } = useTx();
+  const [busy, setBusy] = useState(false);
+
+  /** One claim = sponsored flow (relayer pays gas); sells route to the execution panel. */
+  const act = async (v: PositionView) => {
+    if (!signer || busy) return;
+    if (v.action?.kind === "sell") {
+      toast.info("sell from the execution panel", "select the pool in the feed, then the sell tab", { ttl: 5_000 });
+      return;
+    }
+    const ck = claimKindOf(v);
+    if (!ck) return;
+    if (ck === "jackpot" || ck === "survivor") {
+      toast.warn("merkle proof required", "winner claims need the settlement proof — the launchpad UI publishes it", { ttl: 8_000 });
+      return;
+    }
+    setBusy(true);
+    try {
+      await runSponsoredClaim(
+        connection,
+        {
+          kind: "claim",
+          claimKind: ck,
+          pool: v.pool,
+          wallet: signer.publicKey,
+          amountRaw: ck === "fair" ? (BigInt(v.investedRaw) - BigInt(v.withdrawnRaw)).toString() : undefined,
+          onReconcile: reconcile,
+        },
+        signer,
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const claimCreatorFees = async (pool: string) => {
+    if (!signer || busy) return;
+    setBusy(true);
+    try {
+      await runSponsoredClaim(connection, { kind: "claim_creator_fees", pool, wallet: signer.publicKey, onReconcile: reconcile }, signer);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const sweep = async () => {
+    if (!signer || busy) return;
+    const items: FlowParams[] = [
+      ...claims.filter((v) => claimKindOf(v) === "fair" || claimKindOf(v) === "graduated_tokens").map((v) => ({
+        kind: "claim" as const,
+        claimKind: claimKindOf(v)!,
+        pool: v.pool,
+        wallet: signer.publicKey,
+        amountRaw: claimKindOf(v) === "fair" ? (BigInt(v.investedRaw) - BigInt(v.withdrawnRaw)).toString() : undefined,
+      })),
+      ...created.filter((c) => BigInt(0n.toString()) >= 0n && c.unclaimedFeesCook !== "0").map((c) => ({
+        kind: "claim_creator_fees" as const,
+        pool: c.pool,
+        wallet: signer.publicKey,
+      })),
+    ];
+    if (items.length === 0) return;
+    setBusy(true);
+    try {
+      await sweepClaims(connection, items, signer, scan.data?.programIds ?? {}, reconcile);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const drip = async () => {
+    if (!wallet) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/drip", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ wallet }) });
+      const j = await res.json();
+      if (res.status === 409) toast.warn("already dripped", "this wallet is in the on-chain drip memo ledger", { ttl: 6_000 });
+      else if (!res.ok) toast.bad("drip failed", j.error, { ttl: 8_000 });
+      else {
+        toast.ok("starter drip received — 0.05 COOK", j.sig, { action: { label: "explorer", onClick: () => window.open(j.explorer, "_blank") } });
+        reconcile();
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
 
   // close on Escape (keyboard actions: no animation dependence, instant)
   useEffect(() => {
@@ -162,6 +257,28 @@ export function PositionsDrawer() {
           </div>
         </div>
 
+        {/* starter drip (H31–33): appears for connected wallets with no gas */}
+        {connected && balance.data && balance.data.cook < 0.01 && (
+          <div className="border-b p-3" style={{ borderColor: "var(--line)", background: "var(--honey-dim)" }}>
+            <div className="flex items-center gap-2">
+              <span className="text-[16px]" aria-hidden>
+                🚰
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[11.5px] font-bold" style={{ color: "var(--honey2)" }}>
+                  no COOK for gas? starter drip
+                </p>
+                <p className="text-[10px]" style={{ color: "var(--muted)" }}>
+                  0.05 COOK, once per wallet (on-chain memo ledger). Claims stay gasless either way.
+                </p>
+              </div>
+              <button className="btn btn-honey !px-2.5 !py-1.5 text-[10.5px]" disabled={busy} onClick={drip}>
+                {busy ? "…" : "drip me"}
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* tabs */}
         <div className="tabs m-3 grid grid-cols-3" role="tablist">
           <span className="thumb" style={{ width: "calc((100% - 6px - 4px)/3)", transform: `translateX(calc(${tab === "positions" ? 0 : tab === "claims" ? 1 : 2} * (100% + 2px)))` }} />
@@ -208,7 +325,7 @@ export function PositionsDrawer() {
                 </p>
               )}
               {positions.map((v) => (
-                <PositionRow key={v.pool} v={v} />
+                <PositionRow key={v.pool} v={v} onAct={act} busy={busy} />
               ))}
             </>
           )}
@@ -221,7 +338,7 @@ export function PositionsDrawer() {
                 </p>
               )}
               {claims.map((v) => (
-                <PositionRow key={v.pool} v={v} />
+                <PositionRow key={v.pool} v={v} onAct={act} busy={busy} />
               ))}
             </>
           )}
@@ -238,8 +355,8 @@ export function PositionsDrawer() {
                   <div className="flex items-center gap-2">
                     <b style={{ color: "var(--honey2)" }}>{c.symbol}</b>
                     <span className={`badge badge-${c.status}`}>{c.status}</span>
-                    <button className="btn ml-auto !px-2 !py-1 text-[10px]" disabled title="claim-creator-fees tx ships in Phase 3">
-                      claim fees ⏸
+                    <button className="btn ml-auto !px-2 !py-1 text-[10px]" disabled={!connected || busy} title={connected ? "gasless via relayer when available" : "connect first"} onClick={() => claimCreatorFees(c.pool)}>
+                      claim fees
                     </button>
                   </div>
                   <div className="num mt-1 text-[11px]" style={{ color: "var(--muted)" }}>
@@ -273,6 +390,11 @@ export function PositionsDrawer() {
               <span style={{ color: "var(--dim)" }}>creator fees</span>
               <span className="text-right">{rawToUi(BigInt(totals.unclaimedCreatorFeesRaw ?? "0"), C.COOK_DECIMALS)} COOK</span>
             </div>
+            {connected && claims.length + created.length > 1 && (
+              <button className="btn btn-honey mt-2 w-full !py-2" disabled={busy} onClick={sweep} title="sequential sponsored claims, one ribbon">
+                {busy ? "sweeping…" : `⚡ sweep ${claims.length + created.length} pending actions`}
+              </button>
+            )}
           </div>
         )}
       </aside>

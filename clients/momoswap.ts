@@ -126,3 +126,60 @@ export async function resolvePool(ref: string): Promise<LaunchpadPool> {
     }
   }
 }
+
+/* ── Phase 3: transaction builders — the API returns base64 LEGACY transactions ───────── */
+
+export interface ExpectationIx {
+  programId: string;
+  accounts: { pubkey: string; signer: boolean; writable: boolean }[];
+  /** sha256 hex of the instruction data — the server's declared manifest */
+  dataHash: string;
+  transfer?: { to: string; lamports: string };
+}
+
+export interface BuiltTx {
+  /** base64 of a legacy (non-versioned) Transaction, unsigned. */
+  transaction: string;
+  blockhash: string;
+  lastValidBlockHeight: number;
+  /** server-declared instruction manifest; verified byte-for-byte before signing */
+  expectation?: ExpectationIx[];
+  /** the feePayer the server intended (must equal the decoded tx's) */
+  expectationFeePayer?: string;
+}
+
+async function postTx<T extends object>(path: string, body: T): Promise<BuiltTx> {
+  const res = await fetchJson<{
+    success?: boolean;
+    error?: string;
+    transactionBase64?: string;
+    blockhash?: string;
+    lastValidBlockHeight?: number;
+    expectation?: { feePayer?: string; instructions?: ExpectationIx[] };
+  }>(`${LP}${path}`, { method: "POST", body, timeoutMs: 15_000 });
+  const env = unwrap(res, path);
+  if (!env.transactionBase64 || !env.blockhash || env.lastValidBlockHeight === undefined) {
+    throw new MomoPulseError(`launchpad ${path} returned no transaction`, "retry; the API may be degraded");
+  }
+  return {
+    transaction: env.transactionBase64,
+    blockhash: env.blockhash,
+    lastValidBlockHeight: env.lastValidBlockHeight,
+    expectation: env.expectation?.instructions,
+    expectationFeePayer: env.expectation?.feePayer,
+  };
+}
+
+export type ClaimKind = "fair" | "jackpot" | "survivor" | "graduated_tokens";
+
+export const fetchBuyTx = (buyer: string, pool: string, paymentAmount: number | string, referrer?: string) =>
+  postTx("/tx/buy", referrer ? { buyer, pool, paymentAmount, referrer } : { buyer, pool, paymentAmount });
+
+export const fetchSellTx = (seller: string, pool: string, tokenShares: number | string, unwrapSol = false) =>
+  postTx("/tx/sell", { seller, pool, tokenShares, unwrap: unwrapSol });
+
+export const fetchClaimTx = (kind: ClaimKind, claimant: string, pool: string, amount?: number | string, proof?: string[]) =>
+  postTx("/tx/claim", { kind, claimant, pool, amount, proof });
+
+export const fetchClaimCreatorFeesTx = (creator: string, pool: string) =>
+  postTx("/tx/claim-creator-fees", { creator, pool });

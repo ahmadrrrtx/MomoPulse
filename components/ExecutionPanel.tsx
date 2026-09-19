@@ -8,7 +8,10 @@
 import { useMemo, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { buildBuyQuote, buildSellQuote, IMPACT_DANGER_PCT, IMPACT_WARN_PCT } from "@/lib/quote";
-import { rawToUi } from "@/core/format";
+import { runTxFlow, type FlowResult } from "@/lib/txflow";
+import { useTx, COOKIE_REFERRER } from "@/hooks/useTx";
+import { rawToUi, uiToRaw } from "@/core/format";
+import { C } from "@/core/constants";
 import type { LaunchpadConfig, LaunchpadPool } from "@/core/types";
 import type { PositionView } from "@/core/positions";
 
@@ -73,6 +76,44 @@ export function ExecutionPanel({
     () => buildSellQuote(pool, cfg, sellAmt, tol, tokenDecimals, position ? BigInt(position.sharesRaw) : undefined),
     [pool, cfg, sellAmt, tol, tokenDecimals, position],
   );
+
+  const { signer, connection, reconcile } = useTx();
+  const [busy, setBusy] = useState(false);
+
+  const onTrade = async () => {
+    if (!signer || busy) return;
+    setBusy(true);
+    try {
+      const amountRaw =
+        side === "buy" ? uiToRaw(buyAmt, C.COOK_DECIMALS).toString() : uiToRaw(sellAmt, tokenDecimals).toString();
+      await runTxFlow(
+        connection,
+        {
+          kind: side,
+          pool: pool.pubkey,
+          wallet: signer.publicKey,
+          phase: pool.status,
+          amountRaw,
+          referrer: side === "buy" ? COOKIE_REFERRER : undefined,
+          expectedOutRaw: side === "buy" ? (buy.tokensOutRaw ?? undefined) : (sell.netCookRaw ?? undefined),
+          requote: async () => {
+            const r = await fetch("/api/pools?status=all");
+            if (!r.ok) return null;
+            const j = (await r.json()) as { pools: LaunchpadPool[] };
+            const fresh = j.pools.find((p) => p.pubkey === pool.pubkey);
+            if (!fresh) return null;
+            return side === "buy"
+              ? buildBuyQuote(fresh, cfg, buyAmt, tol, tokenDecimals).tokensOutRaw
+              : buildSellQuote(fresh, cfg, sellAmt, tol, tokenDecimals, position ? BigInt(position.sharesRaw) : undefined).netCookRaw;
+          },
+          onReconcile: reconcile,
+        },
+        signer,
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const sharesUi = position?.sharesUi ?? "0";
   const sellPreset = (pct: number) => {
@@ -188,11 +229,20 @@ export function ExecutionPanel({
           )}
         </div>
 
-        <button className="btn btn-honey mt-3 w-full !py-3" disabled title="transaction signing & relayer land in Phase 3">
-          {connected ? `${side} ${pool.symbol} — phase 3` : "connect wallet to trade"}
+        <button
+          className="btn btn-honey mt-3 w-full !py-3"
+          disabled={!connected || !isLive || busy}
+          title={connected ? (isLive ? "sign with your wallet" : "pool not live") : "connect a wallet first"}
+          onClick={onTrade}
+        >
+          {busy ? "flow running…" : connected ? `${side} ${pool.symbol}` : "connect wallet to trade"}
         </button>
         <p className="mt-1.5 text-center text-[10px]" style={{ color: "var(--dim)" }}>
-          {isLive ? "quotes are program-exact (BigInt curve math) — signing ships in Phase 3" : `pool is ${pool.status} — trading closed; claims live in the drawer`}
+          {isLive
+            ? COOKIE_REFERRER
+              ? "quotes are program-exact · referral fee (20% of 1%) funds MomoPulse — disclosed"
+              : "quotes are program-exact (BigInt curve math) · guard: sanitize → blockhash → re-quote"
+            : `pool is ${pool.status} — trading closed; claims live in the drawer`}
         </p>
       </div>
     </section>

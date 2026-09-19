@@ -126,9 +126,53 @@ pools and must not be "updated" without new on-chain evidence.
 ## Roadmap
 
 - **Phase 1 — Core engine & RPC indexer** ✅
-- **Phase 2 — Terminal interface & wallet integration** ✅ (this release)
-- **Phase 3 — Transaction handler & gasless relayer** (buy/sell/claim tx build, feePayer sponsorship, Starter Drip)
+- **Phase 2 — Terminal interface & wallet integration** ✅
+- **Phase 3 — Transaction handler & relayer layer** ✅ (this release)
 - **Phase 4 — Hardening, polish & demo assets**
+
+### Phase 3 deliverables (H22–H36)
+
+| Hour | Deliverable | Where | Status |
+|------|-------------|-------|--------|
+| H22–24 | Direct-build path: `/tx/*` fetch → deserialize → sanitize → manifest-verify → blockhash → [wrap ribbon] → Nightly sign → send → confirm → reconcile; 6-stage toasts | `clients/momoswap.ts` (tx builders), `core/tx.ts`, `lib/txflow.ts`, `components/Toaster.tsx` | ✅ pipeline proven by `scripts/e2e-tx.ts` on live mainnet (below) |
+| H24–26 | Guard rails: min/cap/phase pre-checks (API does NOT phase-check — we refuse 6011 client-side), re-quote on curve-moved, 6xxx translation, blockhash Rebuild action, wCOOK wrap detection | `lib/txflow.ts` `preflightTradeError`, `translateError` | ✅ chaos test: ended-pool buy → clean 6011 UX |
+| H26–28 | cookie-mcp external signer behind `MCP_ENABLED` | `app/api/mcp/route.ts` | ⏸ flag off by design: cookie-mcp needs Node ≥22, deployment targets 20 — the plan's cut-line for "library friction" |
+| H28–31 | Gasless relayer: `/api/relay` prepare (eligibility engine, value-out denial, ATA-payer rewrite, spend memo, feePayer pre-sign rewrite) + `/api/relay/submit` (re-assess, co-sign, broadcast); Turnstile w/ explicit dev-bypass; 10/wallet·30/IP per hour; balance alarm | `core/relay/eligibility.ts` (+8 tests), `app/api/relay/**`, `lib/relay-server.ts` | ✅ engine unit-tested; live verdict RELAYABLE on a real claim; 503-honest until `RELAYER_SECRET` funded |
+| H31–33 | Starter Drip: 0.05 COOK, 1×/wallet via on-chain memo-ledger scan, drawer empty-gas card | `app/api/drip/route.ts`, `PositionsDrawer.tsx` | ✅ same funding gate |
+| H33–35 | Graduation radar: 5s phase-transition watcher, violet card pulse, bell + events, violet toasts; disclosed referral on buys (`NEXT_PUBLIC_COOKIE_REFERRER`) | `store/radar.ts`, `hooks/useRadar.ts`, `Header.tsx` | ✅ live |
+| H35–36 | Claim-all sweeper: sequential sponsored claims, single ribbon toast, per-item stages | `lib/txflow.ts` `sweepClaims`, drawer footer | ✅ live |
+
+**New drain-guard (stronger than the plan):** the launchpad API returns an `expectation`
+manifest with a **sha256 hash of every instruction's data**. `verifyExpectation` re-hashes the
+decoded transaction and refuses to sign on ANY deviation — a compromised or MITM'd API cannot
+mutate amounts or smuggle instructions. Plus: program allowlist, feePayer manifest equality,
+and relay value-out denial.
+
+**Cookie Chain gotcha found:** `blockHeight ≠ slot` (skipped slots) — blockhash expiry must be
+checked against `getBlockHeight`, not `getSlot`. The first harness run "failed" on this and the
+guard was right to be suspicious; the metric was wrong.
+
+**E2E harness output (live mainnet, 2026-09-19, zero funds):**
+
+```
+A · build buy on TEST — 6 ix · manifest verified byte-for-byte · feePayer matches · internal wrap detected · blockhash +142
+B · sponsored sim (sigVerify:false) — SUCCESS units=106717
+C · scan → CINU [graduated] claim — manifest verified · sim SUCCESS units=43028 · relay: RELAYABLE
+D · chaos: ended pool → preflight refused [launchpad 6011]
+E · /api/relay → 503 "relayer hot wallet unconfigured" (honest posture)
+```
+
+### Phase 3 runbook — landing the first real transactions
+
+The pipeline is complete and simulation-proven; **mainnet landings need COOK and no faucet
+exists** (the chain's #1 pain — which is exactly why the drip + relayer exist).
+
+1. **Buy/sell from the live URL:** connect a funded Nightly wallet → pick a live pool → the
+   execution panel signs via the 6-stage flow. Referral disclosure shown when configured.
+2. **Sponsored claims + drip:** `cp .env.example .env.local`, set `RELAYER_SECRET` (base58
+   secret), fund that wallet with ≥0.2 COOK (1 COOK ≈ 2M sponsored txs), redeploy. Claims then
+   cost the user 0 COOK; brand-new wallets self-serve 0.05 COOK from the drawer.
+3. **Verify any time:** `npx tsx scripts/e2e-tx.ts` (no funds needed).
 
 ### Phase 2 deliverables (H10–H22)
 

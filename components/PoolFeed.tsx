@@ -8,6 +8,7 @@
 import { useMemo } from "react";
 import { usePoolFeed, useTokenMeta } from "@/hooks/useFeed";
 import { useTerminal, type FeedFilter, type FeedSort } from "@/store/terminal";
+import { useRadar } from "@/store/radar";
 import { C } from "@/core/constants";
 import { poolPhase } from "@/core/phases";
 import { graduationProgressPct } from "@/core/curve";
@@ -197,6 +198,8 @@ function PoolCard({
 }) {
   const phase = poolPhase(pool, nowSec);
   const meta = useTokenMeta(pool.uri);
+  const radarEvent = useRadar((s) => s.lastByPool[pool.pubkey]);
+  const radarHot = !!radarEvent && Date.now() - radarEvent.ts < 90_000;
   const target = Number(pool.graduationTarget || C.GRADUATION_TARGET_FALLBACK);
   const pct = graduationProgressPct(pool.paymentRaisedNet, pool.graduationTarget || C.GRADUATION_TARGET_FALLBACK);
   const raisedCook = Number(pool.paymentRaisedNet) / 1e9;
@@ -206,7 +209,7 @@ function PoolCard({
 
   return (
     <button
-      className="card border-b"
+      className={`card border-b ${radarHot ? "card-radar" : ""}`}
       style={{ ["--i" as string]: Math.min(index, 8), borderColor: undefined }}
       data-selected={selected}
       onClick={onSelect}

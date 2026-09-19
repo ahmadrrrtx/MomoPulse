@@ -6,12 +6,14 @@
  */
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useRpcPing } from "@/hooks/useRpcPing";
 import { useWalletGuard } from "@/hooks/useWalletGuard";
 import { useScan } from "@/hooks/useFeed";
 import { useTerminal } from "@/store/terminal";
+import { useRadar } from "@/store/radar";
 import { Dot } from "./ui";
 
 const WalletMultiButton = dynamic(
@@ -26,6 +28,8 @@ export function Header() {
   const setDrawer = useTerminal((s) => s.setDrawer);
   const scan = useScan(publicKey?.toBase58() ?? null);
   const pending = scan.data?.totals.actionsPending ?? 0;
+  const radar = useRadar();
+  const [bellOpen, setBellOpen] = useState(false);
 
   const ticker = useQuery<{ cookUsd: number | null }>({
     queryKey: ["ticker"],
@@ -79,6 +83,55 @@ export function Header() {
               {guard.status === "ok" ? "cookie chain" : guard.status === "wrong-network" ? "wrong net" : guard.status === "unreachable" ? "rpc down" : "verifying"}
             </span>
           </span>
+
+          <div className="relative">
+            <button
+              className="btn btn-ghost btn-icon relative"
+              onClick={() => {
+                setBellOpen((o) => !o);
+                radar.markRead();
+              }}
+              aria-label="graduation radar"
+              title="graduation radar — phase transitions"
+            >
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
+                <path d="M8 2a4 4 0 0 0-4 4v3l-1.5 2.5h11L12 9V6a4 4 0 0 0-4-4ZM6.5 13.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+              </svg>
+              {radar.unread > 0 && (
+                <span
+                  className="num absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center px-1 text-[9px] font-bold"
+                  style={{ background: "#a78bfa", color: "#140b2e", boxShadow: "0 0 10px rgba(167,139,250,.6)" }}
+                >
+                  {radar.unread}
+                </span>
+              )}
+            </button>
+            {bellOpen && (
+              <div className="panel absolute right-0 top-[calc(100%+6px)] z-50 w-[280px] p-2" style={{ boxShadow: "0 12px 40px rgba(0,0,0,.5)" }}>
+                <p className="px-1 pb-1 text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: "var(--dim)" }}>
+                  graduation radar
+                </p>
+                {radar.events.length === 0 && (
+                  <p className="p-2 text-[11px]" style={{ color: "var(--dim)" }}>
+                    no phase transitions yet — watching every pool on a 5s cadence.
+                  </p>
+                )}
+                {radar.events.map((e) => (
+                  <div key={`${e.pool}${e.ts}`} className="border-t px-1 py-1.5 first:border-t-0" style={{ borderColor: "var(--line)" }}>
+                    <p className="text-[11.5px]">
+                      <b style={{ color: "#a78bfa" }}>{e.symbol}</b>{" "}
+                      <span style={{ color: "var(--muted)" }}>
+                        {e.from} → {e.to}
+                      </span>
+                    </p>
+                    <p className="num text-[9.5px]" style={{ color: "var(--dim)" }}>
+                      {new Date(e.ts).toLocaleTimeString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <button
             className="btn btn-ghost relative"

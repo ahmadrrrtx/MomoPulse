@@ -15,8 +15,10 @@ import { SafetyRow } from "@/components/SafetyRow";
 import { ExecutionPanel } from "@/components/ExecutionPanel";
 import { OnRampPanel } from "@/components/OnRampPanel";
 import { PositionsDrawer } from "@/components/PositionsDrawer";
+import { Toaster } from "@/components/Toaster";
 import { Skeleton } from "@/components/ui";
 import { useLaunchpadConfig, usePoolFeed, useScan } from "@/hooks/useFeed";
+import { useRadarWatcher } from "@/hooks/useRadar";
 import { useTerminal, type MobileTab } from "@/store/terminal";
 
 const TABS: { id: MobileTab; label: string; icon: string }[] = [
@@ -127,6 +129,8 @@ function RightColumn() {
 
 export default function Home() {
   const { mobileTab, setMobileTab } = useTerminal();
+  const feed = usePoolFeed();
+  useRadarWatcher(feed.data?.pools);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -177,6 +181,7 @@ export default function Home() {
       </nav>
 
       <PositionsDrawer />
+      <Toaster />
     </div>
   );
 }
