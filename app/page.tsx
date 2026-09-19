@@ -1,245 +1,192 @@
 "use client";
 
 /**
- * Phase 1 terminal landing — engine proof: live pool feed (Stage 1) + true-position scanner
- * (Stages 1–5). The full execution grid lands in Phase 2; this page exists to demo the indexer
- * end-to-end from the browser with the same code path as the CLI.
+ * MomoPulse terminal (Phase 2): feed left · curve+price+safety center · execution+on-ramp right,
+ * positions drawer overlay, and a 4-tab bottom bar under 1024px (usable at 375px).
  */
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Header } from "@/components/Header";
-import { C } from "@/core/constants";
-import type { WalletScanResult } from "@/core/pipeline";
-import type { LaunchpadPool } from "@/core/types";
+import { PoolFeed } from "@/components/PoolFeed";
+import { CurveCanvas } from "@/components/CurveCanvas";
+import { PriceChart } from "@/components/PriceChart";
+import { StatsStrip } from "@/components/StatsStrip";
+import { SafetyRow } from "@/components/SafetyRow";
+import { ExecutionPanel } from "@/components/ExecutionPanel";
+import { OnRampPanel } from "@/components/OnRampPanel";
+import { PositionsDrawer } from "@/components/PositionsDrawer";
+import { Skeleton } from "@/components/ui";
+import { useLaunchpadConfig, usePoolFeed, useScan } from "@/hooks/useFeed";
+import { useTerminal, type MobileTab } from "@/store/terminal";
 
-const PHASE_COLOR: Record<string, string> = {
-  live: "mp-green",
-  graduated: "mp-neon",
-  ended: "mp-amber",
-  expired: "mp-red",
-};
+const TABS: { id: MobileTab; label: string; icon: string }[] = [
+  { id: "feed", label: "feed", icon: "M2 3h12M2 8h12M2 13h8" },
+  { id: "chart", label: "chart", icon: "M2 13l4-5 3 3 5-7" },
+  { id: "trade", label: "trade", icon: "M3 4h10v10H3zM7 1v3M1 7h3" },
+  { id: "ramp", label: "on-ramp", icon: "M8 1v14M4 5l4-4 4 4" },
+];
 
-function PoolsFeed() {
-  const { data, isLoading, error } = useQuery<{ pools: LaunchpadPool[] }>({
-    queryKey: ["pools", "all"],
-    refetchInterval: 15_000,
-    queryFn: async () => {
-      const res = await fetch("/api/pools?status=all");
-      if (!res.ok) throw new Error(`pools ${res.status}`);
-      return res.json();
-    },
-  });
+function CenterColumn() {
+  const { pools } = usePoolFeed().data ?? { pools: [] };
+  const selectedPool = useTerminal((s) => s.selectedPool);
+  const cfg = useLaunchpadConfig();
+  const { publicKey } = useWallet();
+  const scan = useScan(publicKey?.toBase58() ?? null);
+
+  const pool = useMemo(() => {
+    if (pools.length === 0) return null;
+    return pools.find((p) => p.pubkey === selectedPool) ?? pools.find((p) => p.status === "live") ?? pools[0];
+  }, [pools, selectedPool]);
+
+  if (!pool) {
+    return (
+      <div className="flex min-h-0 flex-1 flex-col gap-2">
+        <Skeleton h={44} />
+        <Skeleton className="flex-1" />
+        <Skeleton h={180} />
+      </div>
+    );
+  }
+
+  const myPosition = scan.data?.positions.find((v) => v.pool === pool.pubkey) ?? null;
 
   return (
-    <section className="mp-panel flex min-h-0 flex-1 flex-col">
-      <div className="flex items-center justify-between border-b px-3 py-2" style={{ borderColor: "var(--mp-line)" }}>
-        <h2 className="text-[11px] uppercase tracking-widest mp-dim">Launchpad pool feed · stage 1</h2>
-        <span className="mp-chip">{data?.pools.length ?? 0} pools</span>
+    <div className="flex min-h-0 flex-1 flex-col gap-2">
+      <div className="panel flex items-center gap-2 px-3 py-1.5">
+        <b className="text-[13px] tracking-wide" style={{ color: "var(--text)" }}>
+          {pool.symbol}
+        </b>
+        <span className="num truncate text-[10.5px]" style={{ color: "var(--dim)" }}>
+          {pool.name}
+        </span>
+        <span className="num ml-auto hidden text-[10px] sm:inline" style={{ color: "var(--dim)" }} title="pool address">
+          {pool.pubkey.slice(0, 8)}…{pool.pubkey.slice(-6)}
+        </span>
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">
-        {isLoading && <p className="p-3 mp-dim">loading pools…</p>}
-        {error && <p className="p-3 mp-red">feed error: {(error as Error).message}</p>}
-        {data?.pools.map((p) => {
-          const raised = Number(p.paymentRaisedNet ?? 0) / 1e9;
-          const target = Number(p.graduationTarget ?? C.GRADUATION_TARGET_FALLBACK) / 1e9;
-          const pct = target > 0 ? (raised / target) * 100 : 0;
-          return (
-            <a
-              key={p.pubkey}
-              href={`https://momoswap.fun/pool/${p.pubkey}`}
-              target="_blank"
-              rel="noreferrer"
-              className="block border-b px-3 py-2 hover:bg-white/[0.03]"
-              style={{ borderColor: "var(--mp-line)" }}
-            >
-              <div className="flex items-center gap-2">
-                <b className="mp-neon">{p.symbol}</b>
-                <span className={`text-[10px] uppercase ${PHASE_COLOR[p.status] ?? "mp-dim"}`}>{p.status}</span>
-                {p.expiryMode && p.expiryMode !== "dead" && (
-                  <span className="text-[10px] uppercase mp-dim">· {p.expiryMode}</span>
-                )}
-                <span className="ml-auto text-[10px] mp-dim">{p.participantCount ?? 0} holders</span>
-              </div>
-              <div className="mt-1 h-1 w-full" style={{ background: "var(--mp-panel2)" }}>
-                <div
-                  className="h-1"
-                  style={{ width: `${Math.min(pct, 100)}%`, background: "var(--mp-neon)", boxShadow: "var(--mp-glow)" }}
-                />
-              </div>
-              <div className="mt-0.5 flex justify-between text-[10px] mp-dim">
-                <span>
-                  {raised.toLocaleString(undefined, { maximumFractionDigits: 0 })} / {target.toLocaleString(undefined, { maximumFractionDigits: 0 })} COOK
-                </span>
-                <span>{pct.toFixed(2)}% to graduation</span>
-              </div>
-            </a>
-          );
-        })}
+      <StatsStrip pool={pool} cfg={cfg.data ?? null} />
+      <div className="panel min-h-[240px] flex-1 p-1.5">
+        <div className="flex items-center justify-between px-1.5 pb-1">
+          <span className="text-[9.5px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--dim)" }}>
+            bonding curve · marginal price
+          </span>
+          <span className="num text-[9.5px]" style={{ color: "var(--dim)" }}>
+            COOK/token vs tokens sold
+          </span>
+        </div>
+        <div className="h-[calc(100%-20px)]">
+          <CurveCanvas pool={pool} positions={myPosition ? [myPosition] : []} />
+        </div>
       </div>
-    </section>
-  );
-}
-
-function ScanResult({ scan }: { scan: WalletScanResult }) {
-  return (
-    <div className="space-y-2">
-      <p className="text-[11px] mp-dim">
-        scanned {scan.poolsScanned} pools in {(scan.scannedAt / 1000) | 0} · program ids resolved per pool
-      </p>
-      {scan.positions.length === 0 && scan.created.length === 0 && (
-        <p className="mp-dim">No launchpad positions. Curve shares exist only after a bonding-curve buy (UserPosition PDA per pool).</p>
-      )}
-      {scan.positions.map((v) => (
-        <div key={v.pool} className="mp-panel p-3">
-          <div className="flex items-center gap-2">
-            <b className="mp-neon">{v.symbol}</b>
-            <span className={`text-[10px] uppercase ${PHASE_COLOR[v.status] ?? "mp-dim"}`}>{v.status}</span>
-            {v.action && (
-              <span className="ml-auto mp-chip mp-amber">▶ {v.action.kind}</span>
-            )}
-          </div>
-          <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1 text-[12px]">
-            <dt className="mp-dim">shares (curve)</dt>
-            <dd className="text-right">{v.sharesUi}</dd>
-            <dt className="mp-dim">invested / withdrawn</dt>
-            <dd className="text-right">
-              {v.investedUi} / {v.withdrawnUi} COOK
-            </dd>
-            {v.exitValueUi !== null && (
-              <>
-                <dt className="mp-dim">exit value (exact quoteSell)</dt>
-                <dd className="text-right mp-green">{v.exitValueUi} COOK</dd>
-                <dt className="mp-dim">pnl</dt>
-                <dd className={`text-right ${(v.pnlRaw ?? "0").startsWith("-") ? "mp-red" : "mp-green"}`}>
-                  {v.pnlUi} COOK{v.pnlPct !== null ? ` (${v.pnlPct.toFixed(2)}%)` : ""}
-                </dd>
-              </>
-            )}
-            {v.creatorFeeUi && (
-              <>
-                <dt className="mp-dim">creator fees unclaimed</dt>
-                <dd className="text-right mp-amber">{v.creatorFeeUi} COOK</dd>
-              </>
-            )}
-            {v.vestRemainingUi && (
-              <>
-                <dt className="mp-dim">creator vest outstanding</dt>
-                <dd className="text-right">{v.vestRemainingUi}</dd>
-              </>
-            )}
-          </dl>
-          {v.action && <p className="mt-2 text-[11px] mp-dim">{v.action.reason}</p>}
+      <div className="panel h-[190px] p-1.5 sm:h-[210px]">
+        <div className="flex items-center justify-between px-1.5 pb-1">
+          <span className="text-[9.5px] font-bold uppercase tracking-[0.16em]" style={{ color: "var(--dim)" }}>
+            fills · log scale
+          </span>
+          <span className="num text-[9.5px]" style={{ color: "var(--dim)" }}>
+            real trade history + live curve ticks
+          </span>
         </div>
-      ))}
-      {scan.created.length > 0 && (
-        <div className="mp-panel p-3">
-          <p className="text-[11px] uppercase tracking-widest mp-dim">pools created by this wallet</p>
-          {scan.created.map((c) => (
-            <p key={c.pool} className="mt-1 text-[12px]">
-              <b className="mp-neon">{c.symbol}</b> <span className="mp-dim">[{c.status}]</span> fees {c.unclaimedFeesCook} COOK
-              {c.unclaimedVestTokens ? ` · vest ${c.unclaimedVestTokens}` : ""}
-            </p>
-          ))}
+        <div className="h-[calc(100%-20px)]">
+          <PriceChart pool={pool} />
         </div>
-      )}
-      <p className="text-[12px]">
-        TOTALS · invested <b>{scan.totals.investedCookUi}</b> · withdrawn <b>{scan.totals.withdrawnCookUi}</b> · live exit value{" "}
-        <b className="mp-green">{scan.totals.liveValueCookUi} COOK</b> · actions <b className="mp-amber">{scan.totals.actionsPending}</b>
-      </p>
-      {scan.notes.map((n) => (
-        <p key={n} className="text-[11px] mp-amber">
-          {n}
-        </p>
-      ))}
+      </div>
+      <SafetyRow mint={pool.tokenMint} symbol={pool.symbol} />
     </div>
   );
 }
 
-function Scanner() {
+function RightColumn() {
+  const { pools } = usePoolFeed().data ?? { pools: [] };
+  const selectedPool = useTerminal((s) => s.selectedPool);
+  const cfg = useLaunchpadConfig();
   const { publicKey } = useWallet();
-  const [wallet, setWallet] = useState("");
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  const scan = useScan(publicKey?.toBase58() ?? null);
 
-  const scan = useQuery<WalletScanResult>({
-    queryKey: ["scan", submitted],
-    enabled: !!submitted,
-    staleTime: 30_000,
-    queryFn: async () => {
-      const res = await fetch(`/api/scan?wallet=${encodeURIComponent(submitted!)}`);
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? `scan ${res.status}`);
-      return json;
-    },
-  });
+  const pool = useMemo(() => {
+    if (pools.length === 0) return null;
+    return pools.find((p) => p.pubkey === selectedPool) ?? pools.find((p) => p.status === "live") ?? pools[0];
+  }, [pools, selectedPool]);
 
-  const useConnected = () => {
-    if (publicKey) {
-      setWallet(publicKey.toBase58());
-      setSubmitted(publicKey.toBase58());
-    }
-  };
+  if (!pool) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Skeleton h={380} />
+        <Skeleton h={260} />
+      </div>
+    );
+  }
+  const myPosition = scan.data?.positions.find((v) => v.pool === pool.pubkey) ?? null;
 
   return (
-    <section className="mp-panel p-3">
-      <h2 className="text-[11px] uppercase tracking-widest mp-dim">True-position scanner · stages 1–5</h2>
-      <div className="mt-2 flex gap-2">
-        <input
-          className="mp-input"
-          placeholder="wallet address (base58)"
-          value={wallet}
-          onChange={(e) => setWallet(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && wallet && setSubmitted(wallet)}
-        />
-        <button className="mp-btn shrink-0" disabled={!wallet || scan.isFetching} onClick={() => setSubmitted(wallet)}>
-          {scan.isFetching ? "scanning…" : "scan"}
-        </button>
-        <button className="mp-btn shrink-0" disabled={!publicKey} onClick={useConnected} title={publicKey ? "scan connected wallet" : "connect a wallet first"}>
-          mine
-        </button>
-      </div>
-      {scan.error && <p className="mt-2 mp-red">scan error: {(scan.error as Error).message}</p>}
-      <div className="mt-3">{submitted && scan.data && <ScanResult scan={scan.data} />}</div>
-      <p className="mt-3 text-[10px] mp-dim">
-        same engine as the CLI: <code>npx tsx scripts/positions.ts &lt;wallet&gt;</code> · curve shares are NOT SPL tokens —
-        no wallet or explorer shows them; MomoPulse derives every UserPosition PDA and values it with the program-exact
-        quoteSell math.
-      </p>
-    </section>
+    <div className="flex min-h-0 flex-col gap-2 overflow-y-auto">
+      <ExecutionPanel pool={pool} cfg={cfg.data ?? null} position={myPosition} />
+      <OnRampPanel />
+    </div>
   );
 }
 
 export default function Home() {
+  const { mobileTab, setMobileTab } = useTerminal();
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
-      <main className="mx-auto grid w-full max-w-7xl flex-1 gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-        <PoolsFeed />
-        <div className="flex min-h-0 flex-col gap-4">
-          <Scanner />
-          <section className="mp-panel p-3">
-            <h2 className="text-[11px] uppercase tracking-widest mp-dim">Why this exists</h2>
-            <ul className="mt-2 list-inside list-disc space-y-1 text-[12px] mp-dim">
-              <li>
-                Pre-graduation launchpad buys mint <b className="mp-text">curve shares</b> tracked in a per-pool PDA — invisible to
-                every wallet, block explorer and portfolio tracker.
-              </li>
-              <li>
-                Settled pools hide money: graduated pools owe <b className="mp-text">SPL token claims</b>, expired fair pools owe{" "}
-                <b className="mp-text">refunds</b>, jackpot/survivor pools owe <b className="mp-text">winner payouts</b>.
-              </li>
-              <li>
-                Exit value is NOT shares × spot — the bonding curve + 1% fee means the realizable amount is the program-exact{" "}
-                <code className="mp-neon">quoteSell</code>, which MomoPulse computes locally from on-chain state.
-              </li>
-            </ul>
-            <p className="mt-2 text-[10px] mp-dim">
-              chain: Cookie Chain (SVM) · genesis {C.GENESIS_HASH.slice(0, 12)}… verified per session · data: momoswap.fun API +
-              rpc.cookiescan.io
-            </p>
-          </section>
+
+      {/* desktop / tablet grid */}
+      <main className="mx-auto hidden w-full max-w-[1600px] flex-1 gap-2 p-2 lg:grid lg:grid-cols-[320px_minmax(0,1fr)_360px] lg:overflow-hidden" style={{ height: "calc(100vh - 49px)" }}>
+        <PoolFeed />
+        <CenterColumn />
+        <RightColumn />
+      </main>
+
+      {/* mobile: one panel at a time, bottom tab bar */}
+      <main className="flex-1 p-2 pb-16 lg:hidden" style={{ minHeight: "calc(100vh - 49px)" }}>
+        <div className={mobileTab === "feed" ? "h-[calc(100vh-120px)]" : "hidden"}>
+          <PoolFeed />
+        </div>
+        <div className={mobileTab === "chart" ? "flex h-auto flex-col" : "hidden"}>
+          <CenterColumn />
+        </div>
+        <div className={mobileTab === "trade" ? "" : "hidden"}>
+          <RightColumnTradeOnly />
+        </div>
+        <div className={mobileTab === "ramp" ? "" : "hidden"}>
+          <OnRampPanel />
         </div>
       </main>
+
+      <nav
+        className="fixed bottom-0 left-0 right-0 z-50 grid grid-cols-4 border-t lg:hidden"
+        style={{ borderColor: "var(--line2)", background: "rgba(13,10,7,0.96)", backdropFilter: "blur(8px)" }}
+        aria-label="terminal sections"
+      >
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setMobileTab(t.id)}
+            className="flex flex-col items-center gap-0.5 py-2"
+            style={{ color: mobileTab === t.id ? "var(--honey)" : "var(--dim)", transition: "color 160ms var(--ease-out)" }}
+            aria-current={mobileTab === t.id}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path d={t.icon} stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em]">{t.label}</span>
+          </button>
+        ))}
+      </nav>
+
+      <PositionsDrawer />
     </div>
   );
+}
+
+/** mobile "trade" tab shows just the execution panel (on-ramp has its own tab) */
+function RightColumnTradeOnly() {
+  const { pools } = usePoolFeed().data ?? { pools: [] };
+  const selectedPool = useTerminal((s) => s.selectedPool);
+  const cfg = useLaunchpadConfig();
+  const pool = pools.find((p) => p.pubkey === selectedPool) ?? pools.find((p) => p.status === "live") ?? pools[0] ?? null;
+  if (!pool) return <Skeleton h={380} />;
+  return <ExecutionPanel pool={pool} cfg={cfg.data ?? null} position={null} />;
 }

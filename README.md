@@ -125,7 +125,27 @@ pools and must not be "updated" without new on-chain evidence.
 
 ## Roadmap
 
-- **Phase 1 — Core engine & RPC indexer** ✅ (this)
-- **Phase 2 — Terminal interface & wallet integration** (pool feed/chart/execution grid, portfolio drawer, shadcn)
+- **Phase 1 — Core engine & RPC indexer** ✅
+- **Phase 2 — Terminal interface & wallet integration** ✅ (this release)
 - **Phase 3 — Transaction handler & gasless relayer** (buy/sell/claim tx build, feePayer sponsorship, Starter Drip)
 - **Phase 4 — Hardening, polish & demo assets**
+
+### Phase 2 deliverables (H10–H22)
+
+| Hour | Deliverable | Where | Gate |
+|------|-------------|-------|------|
+| H10–13 | Left feed: cards (progress, phase/mode badges, countdown, anti-snipe/min/max flags), search/sort/filter, 5s refresh, skeletons + empty states | `components/PoolFeed.tsx` | matches momoswap.fun lobby (same API, 5s cadence), real IPFS artwork via `/api/meta` |
+| H13–16 | Center: DPR-aware curve canvas (hyperbola, sold-region fill, graduation marker, pulsing spot, **entry pins** for connected holder, hover crosshair) + Lightweight-Charts log-scale price series seeded with **real fill history** (`/api/trades`) + live curve ticks (ring buffer 720) + stat strip + safety row (mint authority / transfer hooks / impostor mints / registry) | `components/CurveCanvas.tsx`, `PriceChart.tsx`, `StatsStrip.tsx`, `SafetyRow.tsx`, `app/api/{trades,safety}/route.ts` | chart renders live pool; pins appear for connected holder |
+| H16–19 | True Positions drawer: merged `PositionView` table, totals footer, `positionAction` CTAs (disabled until Phase 3), Claims + Creator tabs, native COOK/wCOOK balances, 30s + focus reconciliation | `components/PositionsDrawer.tsx`, `app/api/balance/route.ts` | funded test wallet shows positions; refresh reconciles |
+| H19–21 | Execution panel UI: buy/sell tabs, presets, program-exact quote box (<1ms local BigInt math), tolerance slider, impact-guard visual with 3%/10% zones | `components/ExecutionPanel.tsx`, `lib/quote.ts` | `lib/quote.test.ts` proves quote box ≡ `estimateBuy`/`estimateSell` raw-for-raw |
+| H21–22 | On-ramp panel: Jupiter deep link (sCOOK mint), Hyperlane bridge + live reachability probe, Nightly RPC setup card w/ copy buttons; mobile 4-tab layout | `components/OnRampPanel.tsx`, `app/api/bridge-status/route.ts`, `app/page.tsx` | usable at 375px |
+
+**Design system — "Honey Terminal"** (per the uploaded design-engineering skills): warm espresso
+surfaces (#0d0a07) with honey-amber signal (#f5a524), cream type, jade/coral P&L semantics;
+Space Grotesk + IBM Plex Mono (tabular nums); atmosphere via local gradients/grid/noise (no
+network); custom easing (`cubic-bezier(0.23,1,0.32,1)`, drawer `0.32,0.72,0,1`), all UI motion
+≤340ms and GPU-only (transform/opacity), `scale(0.97)` press states, staggered first paint,
+shimmer skeletons, gated hover (`@media (hover:hover)`), full `prefers-reduced-motion` support.
+Generated assets: `app/icon.png` (cookie + EKG mark), `app/opengraph-image.png`, `public/logo.png`.
+
+**Wallets:** Nightly (required, first) · Phantom · Solflare · Backpack + wallet-standard discovery.
