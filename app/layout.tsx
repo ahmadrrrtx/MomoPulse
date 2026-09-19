@@ -3,6 +3,7 @@ import { Space_Grotesk, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
 import { Providers } from "./providers";
+import { BootGate } from "@/components/BootGate";
 
 const ui = Space_Grotesk({
   subsets: ["latin"],
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${ui.variable} ${mono.variable}`}>
       <body>
+        <BootGate />
         <Providers>{children}</Providers>
       </body>
     </html>
