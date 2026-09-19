@@ -8,7 +8,7 @@ earlier as binding). Buffer exists for review-queue issues.
 | Project name | MomoPulse |
 | Tagline | The launchpad terminal for Cookie Chain — sees the curve positions no wallet can |
 | Live URL | <vercel-url> (CI deploys every merge; `vercel.json` in repo) |
-| GitHub | <repo-url> (public, MIT, 4 phase-tagged commits + clean history) |
+| GitHub | https://github.com/ahmadrrrtx/MomoPulse (public, MIT, 4 phase-tagged commits + clean history) |
 | Demo video | <mp4-url> (90s, script: `docs/demo-script.md`) + GIF for registry |
 | X thread | <thread-url> (includes required bridge guide, tags @TheCookieChain) |
 | Telegram | posted in TheCookieNetChain — <tg-url> |

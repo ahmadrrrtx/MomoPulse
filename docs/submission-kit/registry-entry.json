@@ -8,18 +8,18 @@
   "links": {
     "website": "https://momopulse.vercel.app",
     "demo": "https://momopulse.vercel.app",
-    "github": "https://github.com/<your-org>/momopulse",
+    "github": "https://github.com/ahmadrrrtx/MomoPulse",
     "x": "https://x.com/<your-handle>/status/<thread-id>",
-    "docs": "https://github.com/<your-org>/momopulse#readme",
-    "video": "https://raw.githubusercontent.com/<your-org>/momopulse/main/docs/demo.mp4"
+    "docs": "https://github.com/ahmadrrrtx/MomoPulse#readme",
+    "video": "https://raw.githubusercontent.com/ahmadrrrtx/MomoPulse/main/docs/demo.mp4"
   },
   "media": {
-    "logo": "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/logo-512.png",
-    "banner": "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/banner-1500x500.png",
+    "logo": "https://raw.githubusercontent.com/ahmadrrrtx/MomoPulse/main/assets/logo-512.png",
+    "banner": "https://raw.githubusercontent.com/ahmadrrrtx/MomoPulse/main/assets/banner-1500x500.png",
     "screenshots": [
-      "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/screenshots/01-terminal.png",
-      "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/screenshots/02-drawer-claims.png",
-      "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/screenshots/03-mobile.png"
+      "https://raw.githubusercontent.com/ahmadrrrtx/MomoPulse/main/assets/screenshots/01-terminal.png",
+      "https://raw.githubusercontent.com/ahmadrrrtx/MomoPulse/main/assets/screenshots/02-drawer-claims.png",
+      "https://raw.githubusercontent.com/ahmadrrrtx/MomoPulse/main/assets/screenshots/03-mobile.png"
     ]
   },
   "team": [

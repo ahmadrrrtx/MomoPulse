@@ -15,6 +15,10 @@ you the one action each position needs.
 **Demo:** live URL `<vercel-url>` · 90s video `docs/demo.mp4` (script: `docs/demo-script.md`) ·
 X thread `<thread-url>` · registry entry `docs/submission-kit/`
 
+**Code:** https://github.com/ahmadrrrtx/MomoPulse ·
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fahmadrrrtx%2FMomoPulse)
+— full instructions incl. env vars and smoke test: [`docs/DEPLOY.md`](docs/DEPLOY.md)
+
 ---
 
 ## Quick start
