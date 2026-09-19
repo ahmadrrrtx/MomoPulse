@@ -421,7 +421,7 @@ export function PositionsDrawer() {
               <div className="mt-3 space-y-2">
                 {copilotLog.length === 0 && (
                   <p className="text-[11px]" style={{ color: "var(--dim)" }}>
-                    tries: “what am I holding?” · “can I pay gas?” · “what's close to graduating?” · “is TEST safe?”
+                    tries: “what am I holding?” · “can I pay gas?” · “what’s close to graduating?” · “is TEST safe?”
                   </p>
                 )}
                 {copilotLog.map((e, i) => (
