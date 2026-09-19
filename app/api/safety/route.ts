@@ -10,6 +10,7 @@ import { NextResponse } from "next/server";
 import { PublicKey } from "@solana/web3.js";
 import bs58 from "bs58";
 import { getConnection } from "@/clients/rpc";
+import { scanTransferHook } from "@/core/relay/eligibility";
 import { searchAssets } from "@/clients/cookiescan";
 
 export const runtime = "nodejs";
@@ -37,24 +38,6 @@ function parseMint(data: Buffer) {
   const freezeAuthority = data.readUInt32LE(46) === 1 ? bs58.encode(data.subarray(50, 82)) : null;
   void freezeOpt;
   return { mintAuthority, freezeAuthority, supply: supply.toString(), decimals };
-}
-
-function scanTransferHook(data: Buffer): { present: boolean; programId: string | null } {
-  // Token-2022: TLV entries start right after the 82-byte base mint.
-  let off = 82;
-  for (let i = 0; i < 64 && off + 4 <= data.length; i++) {
-    const type = data.readUInt16LE(off);
-    const len = data.readUInt16LE(off + 2);
-    if (type === EXT_TRANSFER_HOOK) {
-      // TransferHook { authority: OptionalNonZeroPubkey(32), program_id: Pubkey(32), … }
-      const prog = data.subarray(off + 4 + 32, off + 4 + 64);
-      const allZero = prog.every((b) => b === 0);
-      return { present: true, programId: allZero ? null : bs58.encode(prog) };
-    }
-    off += 4 + len;
-    if (len === 0 && type === 0 && off === 86) break; // uninitialized TLV tail
-  }
-  return { present: false, programId: null };
 }
 
 export async function GET(req: Request) {

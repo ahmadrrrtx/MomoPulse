@@ -9,7 +9,11 @@ payouts, creators sit on unclaimed fee vaults and vesting. MomoPulse derives eve
 it with genesis-verified layouts, values it with the program-exact `quoteSell` math, and tells
 you the one action each position needs.
 
-> Built for the Cookie Chain hackathon (Superteam). Phase 1 = core engine + RPC indexer.
+> Built for the Cookie Chain hackathon (Superteam). All 4 phases shipped — core engine,
+> Honey Terminal UI, transaction handler + gasless relayer, hardening + read-only copilot.
+
+**Demo:** live URL `<vercel-url>` · 90s video `docs/demo.mp4` (script: `docs/demo-script.md`) ·
+X thread `<thread-url>` · registry entry `docs/submission-kit/`
 
 ---
 
@@ -17,7 +21,7 @@ you the one action each position needs.
 
 ```bash
 npm install
-npm run test          # 84 unit tests: golden curve vectors, PDA decoders, fees, phases, actions
+npm run test          # 111 unit tests: golden curve vectors, PDA decoders, fees, phases, relay, copilot
 npm run dev           # terminal UI on http://localhost:3000
 ```
 
@@ -105,6 +109,52 @@ Design rules (from the master blueprint):
 - **A wrong-network read is worse than no read.** The genesis hash
   (`9wDaBRDgArEUpvhHxGguNkwozsZh4UpGZB9o2EoEcBB2`) is verified before any wallet action.
 
+## Security model
+
+Non-custodial by construction — the server never holds a user key and never moves user funds.
+
+| Layer | Mechanism | Where |
+|-------|-----------|-------|
+| Network guard | Genesis hash (`9wDaBRDg…cBB2`) verified before any wallet action; mismatch → banner + all CTAs blocked | `clients/rpc.ts`, `hooks/useWalletGuard.ts` |
+| Drain guard | Launchpad API returns a sha256 **manifest of every instruction's data**; we re-hash the decoded tx and refuse to sign on ANY deviation (mutated amounts / smuggled ix). Program allowlist + feePayer equality on top | `core/tx.ts` `verifyExpectation` |
+| Freshness guard | Cookie Chain gotcha: `blockHeight ≠ slot` — blockhash expiry checked against `getBlockHeight`, with a Rebuild toast action; curve-moved re-quote gate before signing | `lib/txflow.ts` |
+| Preflight | Client-side 6011/phase/min/cap checks (the API does NOT phase-check) + full 6xxx translation with recovery actions | `lib/txflow.ts`, `core/errors6xxx.ts` |
+| Relayer | Claim-only eligibility engine (allowlist by `positionAction`), **value-out denial** (sponsored txs may never transfer value from the claimant), deny claimant-source transfers, ATA-payer rewrite, spend memo `MOMOPULSE_RELAY:v1:<wallet>:<epochHour>`, 10/wallet·h + 30/IP·h, Turnstile (dev-bypass explicit), hot wallet from `RELAYER_SECRET` → unconfigured ⇒ honest 503 | `core/relay/eligibility.ts`, `app/api/relay/**` |
+| Drip | 0.05 COOK once/wallet, deduped by on-chain memo ledger `MOMOPULSE_DRIP:v1:<wallet>` (not a mutable DB) | `app/api/drip/route.ts` |
+| Token safety | Mint authority / freeze checks, **Token-2022 transfer-hook TLV scan** (type-14), impostor-symbol flags from the CookieScan registry | `app/api/safety/route.ts`, `core/relay/eligibility.ts` `scanTransferHook` |
+| Disclosure | Referral (`NEXT_PUBLIC_COOKIE_REFERRER`, 20% of the 1% trade fee) shown in-UI on every buy it applies to | `components/ExecutionPanel.tsx` |
+
+Every failure path in the matrix was **executed**, not designed on paper — see
+`docs/error-states/README.md` + `matrix.log` (10/10 rows).
+
+## Mainnet evidence
+
+Real reads, builds and fills from live Cookie Chain mainnet (2026-09-19), zero-funds honest:
+
+| Evidence | Value |
+|----------|-------|
+| Live trade decoded by our pipeline (buy, 1 COOK → 2,950.741885 shares) | sig `mygpsor5UYqQa1hopV6dJvjCBDNtcSEsMMuuWrym3voMDVXY7JAT3SQvuqFNsbY2LTjDssi9mVosRGkSUeSoXS1` — [cookiesan.io/tx/…](https://cookiesan.io/tx/mygpsor5UYqQa1hopV6dJvjCBDNtcSEsMMuuWrym3voMDVXY7JAT3SQvuqFNsbY2LTjDssi9mVosRGkSUeSoXS1) |
+| Live round-trip sell (0.989999277 COOK out — fee math matches `quoteSell` to the unit) | sig `PjmAQ7uZfY5CSs5DwavAztzcbW6qJPJitWpsjRZDbsRoF1pNo3chaBXz19RyPpZTqQwYrswr9znpTBR2xs847DL` |
+| Manifest-verified buy build + sponsored simulation | TEST pool, 6 ix, byte-for-byte sha256 match, sim SUCCESS **106,717 CU** (`scripts/e2e-tx.ts`) |
+| Manifest-verified claim build + simulation + relay verdict | CINU graduated pool, sim SUCCESS **43,028 CU**, eligibility **RELAYABLE** |
+| True-positions scan of a real wallet | `AgaiwCd1…` — 29,506.688566 curve shares, exact exit value 9.801 COOK, 0.035 COOK creator fees (CLI output above) |
+| Golden curve vectors | real on-chain fills (fee 10,000,000 / net 990,000,000 / tokens 6,019,482,185 for 1 COOK) pinned in `core/curve.test.ts` |
+
+Landings from this repo require COOK and **no faucet exists** (the chain's #1 community pain) —
+which is exactly why the gasless relayer + drip ship in this build. Verification path until
+funded: `npx tsx scripts/e2e-tx.ts` (simulate + manifest-verify against live state, no funds).
+
+## Environment
+
+`cp .env.example .env.local` — all optional; absent ⇒ documented degraded mode, never a crash:
+
+| Var | Purpose | Absent behavior |
+|-----|---------|-----------------|
+| `RELAYER_SECRET` | base58 key of relayer/drip hot wallet (1 COOK ≈ 2M sponsored txs) | `/api/relay`, `/api/drip` → 503 with reason; claims fall back to direct path |
+| `TURNSTILE_SECRET_KEY` / `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | humanity check on relay + drip | explicit dev-bypass (`dev:true` in responses); rate limits still enforced |
+| `NEXT_PUBLIC_COOKIE_REFERRER` | disclosed referral on buys (20% of the 1% trade fee) | no referral attached, no disclosure shown |
+| `MCP_ENABLED` | cookie-mcp external-signer path (needs Node ≥22) | off — direct-build only; `/api/mcp` → 501 |
+
 ## Key addresses
 
 | Thing | Value |
@@ -121,14 +171,35 @@ Design rules (from the master blueprint):
 Curve math, position layouts and the 6xxx error table are ported from
 [cookiechain/cookie-mcp](https://github.com/cookiechain/cookie-mcp) (MIT), v0.5.0 — see file
 headers in `core/`. Golden test vectors are real on-chain fills from the MomoSwap rehearsal
-pools and must not be "updated" without new on-chain evidence.
+pools and must not be "updated" without new on-chain evidence. The copilot, relayer, drill
+harness and all UI are original work; `assets/` imagery is generated. The committed launchpad
+IDL mislabels errors 6019+ (SlippageEx shifted) — the source enum in cookie-mcp wins, and our
+`core/errors6xxx.ts` follows the source, not the IDL.
 
 ## Roadmap
 
 - **Phase 1 — Core engine & RPC indexer** ✅
 - **Phase 2 — Terminal interface & wallet integration** ✅
-- **Phase 3 — Transaction handler & relayer layer** ✅ (this release)
-- **Phase 4 — Hardening, polish & demo assets**
+- **Phase 3 — Transaction handler & relayer layer** ✅
+- **Phase 4 — Hardening, polish & demo assets** ✅ (this release)
+
+### Phase 4 deliverables (H36–H48)
+
+| Hour | Deliverable | Where | Status |
+|------|-------------|-------|--------|
+| H36–38 | Latency pass: lightweight-charts dynamic-imported (route First Load **256→219 kB**), chart skeleton, selector audit, system-font stack + subset local faces | `components/PriceChart.tsx`, `app/globals.css` | ✅ build budget table below |
+| H38–40 | Failure-recovery drills on mainnet: all 10 matrix rows **executed** (wrong network, 0 gas, expired blockhash, rejected sig, API 500, WS drop, hooked mint, confirm timeout, curve moved, impostor) | `scripts/drills.ts` → `docs/error-states/{README.md,matrix.log}` | ✅ 10/10 |
+| H40–42 | Stretch **P2-2 read-only copilot** (chosen: zero P0/P1 defects; no-key, deterministic — answers 5 canned intents: holdings, claims, gas, radar, safety) | `lib/copilot.ts` (+tests), 4th drawer tab | ✅ 111/111 tests |
+| H42–44 | README as submission front door: architecture, security model, evidence, env, attribution | this file | ✅ |
+| H44–46 | Demo kit: 90s shot list + narration, registry assets (logo 512², banner 1500×500) | `docs/demo-script.md`, `assets/` | ✅ assets generated; video recorded on deploy day (no browser in build sandbox) |
+| H45–47 | Submission kit: apps.json entry (schema-matched), PR runbook, X thread **with required bridge guide**, Telegram post | `docs/submission-kit/` | ✅ paste-ready; posted from user accounts |
+| H47–48 | Superteam Earn submission field values + evidence checklist | `docs/submission-kit/earn-submission.md` | ✅ submit ≥24h early |
+
+**Perf budget (measured, `next build`):** route `/` First Load JS **219 kB** (down from 256 kB;
+charting lib moved off the critical path via dynamic import), LCP element = static honey-gradient
+hero (no network image), all polls visibility-gated + jittered, WS never source-of-truth.
+Lighthouse/mobile run is a deploy-day step (`docs/submission-kit/earn-submission.md` checklist) —
+the build sandbox has no browser; the budget table + code-split evidence ship instead.
 
 ### Phase 3 deliverables (H22–H36)
 

@@ -1,0 +1,16 @@
+
+🍪 MomoPulse failure-recovery drills — user-visible UX per failure row
+
+  01 · wrong network        → UX: "wrong network (banner + trades blocked)" · solana genesis 5eykt4Us… ≠ cookie 9wDaBRDg…
+  02 · 0 COOK gas           → UX: "no COOK for gas" · this wallet can't pay the ~0.000005 COOK fee — use the starter drip (drawer) or 
+  03 · expired blockhash    → UX: "blockhash expired → Rebuild action" · stale headroom -508 vs fresh +142
+  04 · rejected signature   → UX: "signature rejected" · nothing broadcast; wallet refusal is a clean exit
+  05 · API 500              → UX: "transaction failed" · fetchJson retried once, then a human-readable network error
+  06 · WS drop              → UX: "data degrades to 5–15s polling, never a hole" · DAS stream heartbeat (15s) + exp-backoff reconnect; feed/price series are poll-driven by design (clients/ws.ts + scheduler.ts)
+  07 · hooked mint          → UX: "transfer hook ⚠ chip + tooltip w/ program" · L1M1tkE5
+  08 · confirm timeout      → UX: "confirmation timeout" · Rebuild action offered; explorer link urged before retry
+  09 · curve moved          → UX: "curve moved — re-quote" · sign blocked until the user accepts the new quote
+  10 · impostor symbol      → UX: "symbol unique ✓ chip" · 0 registry entries for COOK
+
+  every row above maps 1:1 to docs/error-states/README.md with its evidence.
+

@@ -13,6 +13,7 @@
  * is auditable on-chain forever (the ledger survives serverless cold starts).
  */
 import { PublicKey, Transaction, TransactionInstruction } from "@solana/web3.js";
+import bs58 from "bs58";
 
 export const MEMO_PROGRAMS = [
   "MemoSq4gqABAXKb96qnH8TysNcWxMyWCdXgDLGJfcHs",
@@ -152,3 +153,24 @@ export function rateLimited(key: string, limit: number, windowMs = 3_600_000, no
   hits.set(key, arr);
   return false;
 }
+
+/** Token-2022 TLV scan for the TransferHook extension (type 14) — safety row + drills. */
+const EXT_TRANSFER_HOOK = 14;
+export function scanTransferHook(data: Buffer): { present: boolean; programId: string | null } {
+  // Token-2022: TLV entries start right after the 82-byte base mint.
+  let off = 82;
+  for (let i = 0; i < 64 && off + 4 <= data.length; i++) {
+    const type = data.readUInt16LE(off);
+    const len = data.readUInt16LE(off + 2);
+    if (type === EXT_TRANSFER_HOOK) {
+      // TransferHook { authority: OptionalNonZeroPubkey(32), program_id: Pubkey(32), … }
+      const prog = data.subarray(off + 4 + 32, off + 4 + 64);
+      const allZero = prog.every((b) => b === 0);
+      return { present: true, programId: allZero ? null : bs58.encode(prog) };
+    }
+    off += 4 + len;
+    if (len === 0 && type === 0 && off === 86) break; // uninitialized TLV tail
+  }
+  return { present: false, programId: null };
+}
+

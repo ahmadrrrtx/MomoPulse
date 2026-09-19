@@ -8,8 +8,9 @@
  */
 import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useBalance, useScan } from "@/hooks/useFeed";
+import { useBalance, usePoolFeed, useSafety, useScan } from "@/hooks/useFeed";
 import { useTerminal } from "@/store/terminal";
+import { answer as copilotAnswer } from "@/lib/copilot";
 import { useTx } from "@/hooks/useTx";
 import { runSponsoredClaim, sweepClaims, type FlowParams } from "@/lib/txflow";
 import { toast } from "@/store/toasts";
@@ -19,7 +20,7 @@ import { CopyButton, Skeleton, Spinner } from "./ui";
 import type { PositionView } from "@/core/positions";
 import type { ClaimKind } from "@/clients/momoswap";
 
-type Tab = "positions" | "claims" | "creator";
+type Tab = "positions" | "claims" | "creator" | "copilot";
 
 function claimKindOf(v: PositionView): ClaimKind | null {
   const k = v.action?.kind;
@@ -199,6 +200,27 @@ export function PositionsDrawer() {
     }
   };
 
+  const feed = usePoolFeed();
+  const selectedPoolKey = useTerminal((s) => s.selectedPool);
+  const selPool =
+    feed.data?.pools.find((p) => p.pubkey === selectedPoolKey) ?? feed.data?.pools.find((p) => p.status === "live") ?? null;
+  const safety = useSafety(selPool?.tokenMint ?? null, selPool?.symbol ?? null);
+  const [copilotLog, setCopilotLog] = useState<{ q: string; a: string }[]>([]);
+  const [copilotQ, setCopilotQ] = useState("");
+  const askCopilot = () => {
+    const q = copilotQ.trim();
+    if (!q) return;
+    const a = copilotAnswer(q, {
+      wallet,
+      scan: scan.data ?? null,
+      balance: balance.data ?? null,
+      pools: feed.data?.pools ?? [],
+      safetyBySymbol: selPool && safety.data ? { [selPool.symbol]: safety.data } : {},
+    });
+    setCopilotLog((l) => [...l.slice(-5), { q, a: a.text }]);
+    setCopilotQ("");
+  };
+
   // close on Escape (keyboard actions: no animation dependence, instant)
   useEffect(() => {
     if (!drawerOpen) return;
@@ -280,8 +302,14 @@ export function PositionsDrawer() {
         )}
 
         {/* tabs */}
-        <div className="tabs m-3 grid grid-cols-3" role="tablist">
-          <span className="thumb" style={{ width: "calc((100% - 6px - 4px)/3)", transform: `translateX(calc(${tab === "positions" ? 0 : tab === "claims" ? 1 : 2} * (100% + 2px)))` }} />
+        <div className="tabs m-3 grid grid-cols-4" role="tablist">
+          <span
+            className="thumb"
+            style={{
+              width: "calc((100% - 6px - 6px)/4)",
+              transform: `translateX(calc(${tab === "positions" ? 0 : tab === "claims" ? 1 : tab === "creator" ? 2 : 3} * (100% + 2px)))`,
+            }}
+          />
           <button role="tab" aria-selected={tab === "positions"} onClick={() => setTab("positions")}>
             positions {positions.length > 0 ? `(${positions.length})` : ""}
           </button>
@@ -290,6 +318,9 @@ export function PositionsDrawer() {
           </button>
           <button role="tab" aria-selected={tab === "creator"} onClick={() => setTab("creator")}>
             creator {created.length > 0 ? `(${created.length})` : ""}
+          </button>
+          <button role="tab" aria-selected={tab === "copilot"} onClick={() => setTab("copilot")}>
+            copilot
           </button>
         </div>
 
@@ -368,6 +399,43 @@ export function PositionsDrawer() {
                 </div>
               ))}
             </>
+          )}
+
+          {tab === "copilot" && (
+            <div className="p-3">
+              <p className="text-[10.5px]" style={{ color: "var(--dim)" }}>
+                read-only agent · five intents: holdings · claims · gas · graduation radar · token safety
+              </p>
+              <div className="mt-2 flex gap-1.5">
+                <input
+                  className="input"
+                  placeholder="ask: anything to claim?"
+                  value={copilotQ}
+                  onChange={(e) => setCopilotQ(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && askCopilot()}
+                />
+                <button className="btn !px-3" onClick={askCopilot}>
+                  ask
+                </button>
+              </div>
+              <div className="mt-3 space-y-2">
+                {copilotLog.length === 0 && (
+                  <p className="text-[11px]" style={{ color: "var(--dim)" }}>
+                    tries: “what am I holding?” · “can I pay gas?” · “what's close to graduating?” · “is TEST safe?”
+                  </p>
+                )}
+                {copilotLog.map((e, i) => (
+                  <div key={i} className="border-l-2 pl-2" style={{ borderColor: "var(--honey)" }}>
+                    <p className="text-[11px] font-bold" style={{ color: "var(--honey2)" }}>
+                      {e.q}
+                    </p>
+                    <p className="num mt-0.5 whitespace-pre-wrap text-[11px]" style={{ color: "var(--muted)" }}>
+                      {e.a}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
         </div>
 

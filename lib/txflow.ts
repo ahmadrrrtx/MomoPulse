@@ -228,6 +228,12 @@ export function translateError(msg: string, logs?: string[] | null): { title: st
   if (ale) return { title: `program error ${anchorLogSummary(ale)}`, body: msg.slice(0, 200) };
   if (/blockhash|block height|expired/i.test(msg))
     return { title: "blockhash expired", body: msg.slice(0, 180), rebuild: true };
+  if (/was not confirmed|confirmation timeout|timed out/i.test(msg))
+    return {
+      title: "confirmation timeout",
+      body: "the tx was sent but not confirmed in time — it may still land; check the explorer before retrying",
+      rebuild: true,
+    };
   if (/refused|rejected|cancelled|user denied|wallet/i.test(msg))
     return { title: "signature rejected", body: "the wallet declined to sign — nothing was sent" };
   if (/insufficient lamports|fee payer|AccountNotFound/i.test(msg))

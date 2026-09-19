@@ -1,0 +1,33 @@
+{
+  "id": "momopulse",
+  "title": "MomoPulse",
+  "shortDescription": "The launchpad terminal for Cookie Chain — sees the bonding-curve positions no wallet can.",
+  "description": "MomoSwap Launchpad buys mint curve shares tracked in per-pool UserPosition PDAs — invisible to every wallet, explorer and portfolio tracker. MomoPulse derives every PDA, decodes it with genesis-verified layouts, values it with the program-exact quoteSell math, and turns it into a trading terminal: live pool feed, bonding-curve canvas with your entry pins, true-positions drawer with one-flow claim sweeping, a gasless relayer (claims at 0 COOK) and a starter drip for brand-new wallets. Includes the safety layer judges asked for: mint-authority checks, Token-2022 transfer-hook detection, impostor-symbol flags and genesis-hash wrong-network interception.",
+  "category": "DeFi",
+  "tags": ["DeFi", "Trading", "Launchpad", "Terminal", "Gasless", "Safety"],
+  "links": {
+    "website": "https://momopulse.vercel.app",
+    "demo": "https://momopulse.vercel.app",
+    "github": "https://github.com/<your-org>/momopulse",
+    "x": "https://x.com/<your-handle>/status/<thread-id>",
+    "docs": "https://github.com/<your-org>/momopulse#readme",
+    "video": "https://raw.githubusercontent.com/<your-org>/momopulse/main/docs/demo.mp4"
+  },
+  "media": {
+    "logo": "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/logo-512.png",
+    "banner": "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/banner-1500x500.png",
+    "screenshots": [
+      "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/screenshots/01-terminal.png",
+      "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/screenshots/02-drawer-claims.png",
+      "https://raw.githubusercontent.com/<your-org>/momopulse/main/assets/screenshots/03-mobile.png"
+    ]
+  },
+  "team": [
+    {
+      "name": "<your name>",
+      "role": "Developer",
+      "x": "https://x.com/<your-handle>",
+      "github": "https://github.com/<your-github>"
+    }
+  ]
+}
