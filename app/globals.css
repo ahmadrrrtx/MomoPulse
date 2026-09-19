@@ -1,0 +1,147 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── MomoPulse theme (Artifact 4): minimalist high-contrast dark cyber-tech ── */
+:root {
+  --mp-bg: #090d16;
+  --mp-panel: #0d1320;
+  --mp-panel2: #111a2c;
+  --mp-line: #1c2a44;
+  --mp-line-hot: #22d3ee;
+  --mp-text: #e8f0ff;
+  --mp-dim: #7d8db0;
+  --mp-neon: #22d3ee; /* cyan — primary accent */
+  --mp-green: #3dff87; /* profit / live */
+  --mp-red: #ff4d6d; /* loss / error */
+  --mp-amber: #ffb84d; /* warning / pending */
+  --mp-glow: 0 0 12px rgba(34, 211, 238, 0.35);
+}
+
+html,
+body {
+  background: var(--mp-bg);
+  color: var(--mp-text);
+  font-family: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.3);
+}
+
+/* sharp borders only — the aesthetic bans rounded pills */
+.mp-panel {
+  background: var(--mp-panel);
+  border: 1px solid var(--mp-line);
+}
+.mp-panel-hot {
+  border-color: var(--mp-line-hot);
+  box-shadow: var(--mp-glow);
+}
+.mp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--mp-line);
+  padding: 2px 8px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mp-dim);
+  background: var(--mp-panel2);
+}
+.mp-neon {
+  color: var(--mp-neon);
+}
+.mp-green {
+  color: var(--mp-green);
+}
+.mp-red {
+  color: var(--mp-red);
+}
+.mp-amber {
+  color: var(--mp-amber);
+}
+.mp-dim {
+  color: var(--mp-dim);
+}
+.mp-glow-text {
+  text-shadow: 0 0 8px rgba(34, 211, 238, 0.6);
+}
+.mp-btn {
+  border: 1px solid var(--mp-neon);
+  color: var(--mp-neon);
+  background: transparent;
+  padding: 6px 14px;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: box-shadow 120ms, background 120ms;
+}
+.mp-btn:hover {
+  box-shadow: var(--mp-glow);
+  background: rgba(34, 211, 238, 0.08);
+}
+.mp-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.mp-input {
+  background: var(--mp-bg);
+  border: 1px solid var(--mp-line);
+  color: var(--mp-text);
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  width: 100%;
+}
+.mp-input:focus {
+  border-color: var(--mp-neon);
+  box-shadow: var(--mp-glow);
+}
+
+/* wallet-adapter button restyle: sharp + neon, matching the terminal */
+.wallet-adapter-button {
+  background: transparent !important;
+  border: 1px solid var(--mp-neon) !important;
+  border-radius: 0 !important;
+  color: var(--mp-neon) !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  height: 32px !important;
+  padding: 0 14px !important;
+}
+.wallet-adapter-button:hover {
+  box-shadow: var(--mp-glow) !important;
+  background: rgba(34, 211, 238, 0.08) !important;
+}
+.wallet-adapter-modal-wrapper,
+.wallet-adapter-modal-button-close {
+  border-radius: 0 !important;
+}
+
+/* thin scrollbars */
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--mp-line);
+}
+*::-webkit-scrollbar-track {
+  background: var(--mp-bg);
+}
+
+@keyframes mp-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
+}
+.mp-blink {
+  animation: mp-blink 1.6s ease-in-out infinite;
+}

@@ -1,0 +1,30 @@
+{
+  "success": true,
+  "config": {
+    "paymentMint": "So11111111111111111111111111111111111111112",
+    "treasuryPayment": "7PwH1Q65fAjTD9LjNWakD7iXMhZRF57W5F1Uj6ggYpuf",
+    "buybackPayment": "8Ggu5HRxh7R22hPpPnGE3qCsgv6acq5QAV7ufNFt8hpU",
+    "tradeFeeBps": 100,
+    "treasuryFeeBps": 3000,
+    "creatorFeeBps": 3500,
+    "referralFeeBps": 2000,
+    "buybackFeeBps": 1500,
+    "creationFeeLamports": "0",
+    "graduationTarget": "1000000000000000",
+    "graduationFee": "0",
+    "lpBurnBps": 0,
+    "creatorVestBps": 2000,
+    "defaultTokenDecimals": 6,
+    "defaultTotalSupply": "1000000000000000",
+    "defaultSaleSupply": "800000000000000",
+    "defaultVirtualPaymentReserve": "360000000000000",
+    "defaultVirtualTokenReserve": "1073000000000000",
+    "paused": false,
+    "postGradFeeBps": 30,
+    "postGradTreasuryFeeBps": 25,
+    "postGradCreatorFeeBps": 5,
+    "postGradPaused": false,
+    "momoReady": 1949,
+    "momoReserveTarget": 1000
+  }
+}

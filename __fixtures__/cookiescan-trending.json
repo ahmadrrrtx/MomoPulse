@@ -1,0 +1,481 @@
+{
+  "count": 9,
+  "trending": [
+    {
+      "rank": 1,
+      "assetId": "cookie-5N3Mtr1AhZUDx9nvkMv4kTV7kJHFgNyeLazKxWwcmomo",
+      "name": "Burnt Cookie",
+      "symbol": "BURNT",
+      "category": "meme",
+      "curated": false,
+      "imageUrl": null,
+      "description": null,
+      "links": null,
+      "liquidityTier": "tier3",
+      "lists": [],
+      "stats": {
+        "price": 4.745554783981684e-7,
+        "priceInCook": 0.0059469314786129305,
+        "liquidity": 0,
+        "volume24hUSD": 500.95536077958803,
+        "marketCap": 474.5554783981684,
+        "priceChange24hPercent": 7.818430158403408,
+        "holder": 30,
+        "supply": 1000000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "cookie-5N3Mtr1AhZUDx9nvkMv4kTV7kJHFgNyeLazKxWwcmomo:mint",
+        "mint": "5N3Mtr1AhZUDx9nvkMv4kTV7kJHFgNyeLazKxWwcmomo",
+        "symbol": "BURNT",
+        "label": "BURNT",
+        "name": "Burnt Cookie",
+        "kind": "native",
+        "tags": [],
+        "liquidityTier": "tier3",
+        "market": {
+          "source": "cookie-pools",
+          "price": 4.745554783981684e-7,
+          "priceInCook": 0.0059469314786129305,
+          "liquidity": 0,
+          "volume24hUSD": 500.95536077958803,
+          "volumeChange24hPercent": 21.70762233009044,
+          "marketCap": 474.5554783981684,
+          "priceChange24hPercent": 7.818430158403408,
+          "supply": 1000000000,
+          "holder": 30,
+          "decimals": 6,
+          "logoURI": null,
+          "poolCount": 1,
+          "lastFetchedAt": 1789831919767
+        }
+      }
+    },
+    {
+      "rank": 2,
+      "assetId": "cookie-E4JJcc284vF8sqDqAmQMravDb89K8zg5Zp6V3ib7momo",
+      "name": "Cookie Inu",
+      "symbol": "CINU",
+      "category": "meme",
+      "curated": false,
+      "imageUrl": "https://ipfs.io/ipfs/QmYeE93Ko7hAJnXY3JDZGGL3qC5He5Zoeh4aayFhT2AUDk",
+      "description": "Cookie Inu is a Shiba baked fresh on Cookie Chain, with golden dough fur and chocolate chips and all. Born on MomoSwap, launched by @tnsthereal. The goodest cookie dog in the trenches 🍪🐕 $CINU on Cookie Chain",
+      "links": {
+        "x": "https://x.com/CookieInumeme",
+        "telegram": "https://t.me/TheCookieNetChain/1"
+      },
+      "liquidityTier": "tier1",
+      "lists": [],
+      "stats": {
+        "price": 0.000001355621921531073,
+        "priceInCook": 0.01698808894897377,
+        "liquidity": 331.0312610660385,
+        "volume24hUSD": 148.81132969080193,
+        "marketCap": 1355.621921531073,
+        "priceChange24hPercent": 61.02514639941806,
+        "holder": 13,
+        "supply": 1000000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "cookie-E4JJcc284vF8sqDqAmQMravDb89K8zg5Zp6V3ib7momo:mint",
+        "mint": "E4JJcc284vF8sqDqAmQMravDb89K8zg5Zp6V3ib7momo",
+        "symbol": "CINU",
+        "label": "CINU",
+        "name": "Cookie Inu",
+        "kind": "native",
+        "tags": [],
+        "liquidityTier": "tier1",
+        "market": {
+          "source": "cookie-pools",
+          "price": 0.000001355621921531073,
+          "priceInCook": 0.01698808894897377,
+          "liquidity": 331.0312610660385,
+          "volume24hUSD": 148.81132969080193,
+          "volumeChange24hPercent": -19.049818493415057,
+          "marketCap": 1355.621921531073,
+          "priceChange24hPercent": 61.02514639941806,
+          "supply": 1000000000,
+          "holder": 13,
+          "decimals": 6,
+          "logoURI": "https://ipfs.io/ipfs/QmYeE93Ko7hAJnXY3JDZGGL3qC5He5Zoeh4aayFhT2AUDk",
+          "poolCount": 1,
+          "lastFetchedAt": 1789831918457
+        }
+      }
+    },
+    {
+      "rank": 3,
+      "assetId": "cookie-62MbXm8LPfbYkhsQiwzpNHHHQvzhmmToLq9WhDPCmomo",
+      "name": "Cookle",
+      "symbol": "COOKL",
+      "category": "meme",
+      "curated": false,
+      "imageUrl": null,
+      "description": null,
+      "links": null,
+      "liquidityTier": "tier2",
+      "lists": [],
+      "stats": {
+        "price": 1.2892777455104464e-7,
+        "priceInCook": 0.0016156691384812336,
+        "liquidity": 83.35215850003091,
+        "volume24hUSD": 37.68551053860499,
+        "marketCap": 128.92777455104465,
+        "priceChange24hPercent": -30.91458672814145,
+        "holder": 8,
+        "supply": 1000000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "cookie-62MbXm8LPfbYkhsQiwzpNHHHQvzhmmToLq9WhDPCmomo:mint",
+        "mint": "62MbXm8LPfbYkhsQiwzpNHHHQvzhmmToLq9WhDPCmomo",
+        "symbol": "COOKL",
+        "label": "COOKL",
+        "name": "Cookle",
+        "kind": "native",
+        "tags": [],
+        "liquidityTier": "tier2",
+        "market": {
+          "source": "cookie-pools",
+          "price": 1.2892777455104464e-7,
+          "priceInCook": 0.0016156691384812336,
+          "liquidity": 83.35215850003091,
+          "volume24hUSD": 37.68551053860499,
+          "volumeChange24hPercent": 100,
+          "marketCap": 128.92777455104465,
+          "priceChange24hPercent": -30.91458672814145,
+          "supply": 1000000000,
+          "holder": 8,
+          "decimals": 6,
+          "logoURI": null,
+          "poolCount": 1,
+          "lastFetchedAt": 1789831918460
+        }
+      }
+    },
+    {
+      "rank": 4,
+      "assetId": "cookie-monster",
+      "name": "Cookie Monster",
+      "symbol": "MON",
+      "category": "meme",
+      "curated": true,
+      "imageUrl": "https://metadata.cookiebox.app/tokens/6H7xnYfBFeEU8S8mhrZRkFNS5vEegRqEwv7h42WbntCL/image.png",
+      "description": "Me want cookie!",
+      "links": null,
+      "liquidityTier": "tier2",
+      "lists": [
+        "memes"
+      ],
+      "stats": {
+        "price": 1.0088503239421585e-7,
+        "priceInCook": 0.0012642491809201355,
+        "liquidity": 158.8536931820112,
+        "volume24hUSD": 7.970024116992674,
+        "marketCap": 100.88503239421584,
+        "priceChange24hPercent": 3.4587046199464386,
+        "holder": 23,
+        "supply": 1000000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "cookie-monster:MON",
+        "mint": "6H7xnYfBFeEU8S8mhrZRkFNS5vEegRqEwv7h42WbntCL",
+        "symbol": "MON",
+        "name": "Cookie Monster",
+        "kind": "native",
+        "tags": [
+          "curated:memes"
+        ],
+        "liquidityTier": "tier2",
+        "market": {
+          "source": "cookie-pools",
+          "price": 1.0088503239421585e-7,
+          "priceInCook": 0.0012642491809201355,
+          "liquidity": 158.8536931820112,
+          "volume24hUSD": 7.970024116992674,
+          "volumeChange24hPercent": -91.12120914615392,
+          "marketCap": 100.88503239421584,
+          "priceChange24hPercent": 3.4587046199464386,
+          "supply": 1000000000,
+          "holder": 23,
+          "decimals": 6,
+          "logoURI": "https://metadata.cookiebox.app/tokens/6H7xnYfBFeEU8S8mhrZRkFNS5vEegRqEwv7h42WbntCL/image.png",
+          "poolCount": 2,
+          "lastFetchedAt": 1789831918457
+        }
+      }
+    },
+    {
+      "rank": 5,
+      "assetId": "cookie-BDEFBNgzV5MzCnF4ccWNYbjy5g8wh5Y76T4xkWn1momo",
+      "name": "Cote",
+      "symbol": "COTE",
+      "category": "meme",
+      "curated": false,
+      "imageUrl": "https://ipfs.io/ipfs/Qmex1ogstX8vQ4CAeLNEHaE1mfnUzWS5sQbSpEXaQYGtLP",
+      "description": "First Cat on Cookie Chain",
+      "links": {
+        "website": "https://cotetoken.com/",
+        "x": "https://x.com/CoteToken",
+        "telegram": "https://t.me/CoteToken"
+      },
+      "liquidityTier": "tier2",
+      "lists": [],
+      "stats": {
+        "price": 6.211641887345666e-7,
+        "priceInCook": 0.007784170735614703,
+        "liquidity": 224.05310388993948,
+        "volume24hUSD": 5.37682679580206,
+        "marketCap": 621.1641887345667,
+        "priceChange24hPercent": 0.8106443945176469,
+        "holder": 20,
+        "supply": 1000000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "cookie-BDEFBNgzV5MzCnF4ccWNYbjy5g8wh5Y76T4xkWn1momo:mint",
+        "mint": "BDEFBNgzV5MzCnF4ccWNYbjy5g8wh5Y76T4xkWn1momo",
+        "symbol": "COTE",
+        "label": "COTE",
+        "name": "Cote",
+        "kind": "native",
+        "tags": [],
+        "liquidityTier": "tier2",
+        "market": {
+          "source": "cookie-pools",
+          "price": 6.211641887345666e-7,
+          "priceInCook": 0.007784170735614703,
+          "liquidity": 224.05310388993948,
+          "volume24hUSD": 5.37682679580206,
+          "volumeChange24hPercent": -86.78020993671686,
+          "marketCap": 621.1641887345667,
+          "priceChange24hPercent": 0.8106443945176469,
+          "supply": 1000000000,
+          "holder": 20,
+          "decimals": 6,
+          "logoURI": "https://ipfs.io/ipfs/Qmex1ogstX8vQ4CAeLNEHaE1mfnUzWS5sQbSpEXaQYGtLP",
+          "poolCount": 1,
+          "lastFetchedAt": 1789831918457
+        }
+      }
+    },
+    {
+      "rank": 6,
+      "assetId": "cookhouse",
+      "name": "COOKHOUSE",
+      "symbol": "COOKHOUSE",
+      "category": "meme",
+      "curated": true,
+      "imageUrl": "https://metadata.cookiebox.app/tokens/C4yVWDrwXeEUapmw3BkvktHBxCSsM8MfJ3aPVuFonFi5/image.jpg",
+      "description": "just a chill cookie house",
+      "links": {
+        "x": "https://x.com/COOKHOUSEonCOOK"
+      },
+      "liquidityTier": "tier1",
+      "lists": [
+        "majors",
+        "memes"
+      ],
+      "stats": {
+        "price": 0.000001751970783148955,
+        "priceInCook": 0.021954967699639314,
+        "liquidity": 661.7225345449035,
+        "volume24hUSD": 3.3544058070223506,
+        "marketCap": 1751.9707831489552,
+        "priceChange24hPercent": -0.7970784768968427,
+        "holder": 44,
+        "supply": 1000000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "cookhouse:COOKHOUSE",
+        "mint": "C4yVWDrwXeEUapmw3BkvktHBxCSsM8MfJ3aPVuFonFi5",
+        "symbol": "COOKHOUSE",
+        "name": "COOKHOUSE",
+        "kind": "native",
+        "tags": [
+          "curated:majors",
+          "curated:memes"
+        ],
+        "liquidityTier": "tier1",
+        "market": {
+          "source": "cookie-pools",
+          "price": 0.000001751970783148955,
+          "priceInCook": 0.021954967699639314,
+          "liquidity": 661.7225345449035,
+          "volume24hUSD": 3.3544058070223506,
+          "volumeChange24hPercent": -11.482215009335588,
+          "marketCap": 1751.9707831489552,
+          "priceChange24hPercent": -0.7970784768968427,
+          "supply": 1000000000,
+          "holder": 44,
+          "decimals": 6,
+          "logoURI": "https://metadata.cookiebox.app/tokens/C4yVWDrwXeEUapmw3BkvktHBxCSsM8MfJ3aPVuFonFi5/image.jpg",
+          "poolCount": 4,
+          "lastFetchedAt": 1789831918457
+        }
+      }
+    },
+    {
+      "rank": 7,
+      "assetId": "cook",
+      "name": "Cookie",
+      "symbol": "COOK",
+      "category": "crypto",
+      "curated": true,
+      "imageUrl": "https://cookiescan.io/attached_assets/cookie.png",
+      "description": "COOK is the gas token of Cookie Chain. Every AMM pair on the chain quotes against COOK or its wrapped form, so it is the pricing base for the whole token universe.",
+      "links": {
+        "website": "https://cookiescan.io"
+      },
+      "liquidityTier": "tier1",
+      "lists": [
+        "majors",
+        "lsts"
+      ],
+      "stats": {
+        "price": 0.00007979837670987497,
+        "priceInCook": 1,
+        "liquidity": 5608.056413098296,
+        "volume24hUSD": 1.3205374649641766,
+        "marketCap": null,
+        "priceChange24hPercent": 0,
+        "holder": 1385,
+        "supply": null
+      },
+      "variantCount": 3,
+      "primaryVariant": {
+        "variantId": "cook:wCOOK",
+        "mint": "So11111111111111111111111111111111111111112",
+        "symbol": "wCOOK",
+        "name": "Wrapped COOK",
+        "kind": "wrapped",
+        "tags": [
+          "curated:majors"
+        ],
+        "liquidityTier": "tier1",
+        "market": {
+          "source": "cookie-native",
+          "price": 0.00007979837670987497,
+          "priceInCook": 1,
+          "liquidity": 3047.245500642896,
+          "volume24hUSD": 0,
+          "volumeChange24hPercent": 0,
+          "marketCap": null,
+          "priceChange24hPercent": 0,
+          "supply": null,
+          "holder": 1385,
+          "decimals": 9,
+          "logoURI": null,
+          "poolCount": 152,
+          "lastFetchedAt": 1789831918465
+        }
+      }
+    },
+    {
+      "rank": 8,
+      "assetId": "omnom",
+      "name": "OMNOM",
+      "symbol": "OMNOM",
+      "category": "meme",
+      "curated": true,
+      "imageUrl": "https://ipfs.io/ipfs/QmVGEisrKTiSi6xEpLjLgs6kwCoiQMq4svYpbX3JewpcQZ",
+      "description": "OMNOM (OMNOM)",
+      "links": null,
+      "liquidityTier": "tier2",
+      "lists": [
+        "memes"
+      ],
+      "stats": {
+        "price": 1.985073241423315e-7,
+        "priceInCook": 0.002487611055849541,
+        "liquidity": 213.19316415417126,
+        "volume24hUSD": 0.0004980471408387273,
+        "marketCap": 198.5073241423315,
+        "priceChange24hPercent": 0.3555755984895994,
+        "holder": 28,
+        "supply": 1000000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "omnom:OMNOM",
+        "mint": "9V6z4wiifv2BrCxd7rwBWBAaWS2dxSepWZmWjRpfQ66p",
+        "symbol": "OMNOM",
+        "name": "OMNOM",
+        "kind": "native",
+        "tags": [
+          "curated:memes"
+        ],
+        "liquidityTier": "tier2",
+        "market": {
+          "source": "cookie-pools",
+          "price": 1.985073241423315e-7,
+          "priceInCook": 0.002487611055849541,
+          "liquidity": 213.19316415417126,
+          "volume24hUSD": 0.0004980471408387273,
+          "volumeChange24hPercent": -96.87934039902397,
+          "marketCap": 198.5073241423315,
+          "priceChange24hPercent": 0.3555755984895994,
+          "supply": 1000000000,
+          "holder": 28,
+          "decimals": 6,
+          "logoURI": "https://ipfs.io/ipfs/QmVGEisrKTiSi6xEpLjLgs6kwCoiQMq4svYpbX3JewpcQZ",
+          "poolCount": 2,
+          "lastFetchedAt": 1789831918460
+        }
+      }
+    },
+    {
+      "rank": 9,
+      "assetId": "cookie-BgyR7wmqEPBUAZKP3egazgW22FPjjdMgkBWN6RPWtZ6g",
+      "name": "Hook Test Cookie",
+      "symbol": "HOOKIE",
+      "category": "meme",
+      "curated": false,
+      "imageUrl": null,
+      "description": null,
+      "links": null,
+      "liquidityTier": "tier3",
+      "lists": [],
+      "stats": {
+        "price": 8.030916750834592e-8,
+        "priceInCook": 0.0010064010174082618,
+        "liquidity": 0.0001607135232829259,
+        "volume24hUSD": 0.00007646213274086869,
+        "marketCap": 0.08030916750834592,
+        "priceChange24hPercent": -1.2694662664944447,
+        "holder": 3,
+        "supply": 1000000
+      },
+      "variantCount": 1,
+      "primaryVariant": {
+        "variantId": "cookie-BgyR7wmqEPBUAZKP3egazgW22FPjjdMgkBWN6RPWtZ6g:mint",
+        "mint": "BgyR7wmqEPBUAZKP3egazgW22FPjjdMgkBWN6RPWtZ6g",
+        "symbol": "HOOKIE",
+        "label": "HOOKIE",
+        "name": "Hook Test Cookie",
+        "kind": "native",
+        "tags": [],
+        "liquidityTier": "tier3",
+        "market": {
+          "source": "cookie-pools",
+          "price": 8.030916750834592e-8,
+          "priceInCook": 0.0010064010174082618,
+          "liquidity": 0.0001607135232829259,
+          "volume24hUSD": 0.00007646213274086869,
+          "volumeChange24hPercent": 100,
+          "marketCap": 0.08030916750834592,
+          "priceChange24hPercent": -1.2694662664944447,
+          "supply": 1000000,
+          "holder": 3,
+          "decimals": 6,
+          "logoURI": null,
+          "poolCount": 3,
+          "lastFetchedAt": 1789831918460
+        }
+      }
+    }
+  ]
+}

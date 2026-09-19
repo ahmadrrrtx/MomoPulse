@@ -1,0 +1,54 @@
+{
+  "name": "momopulse",
+  "version": "0.1.0",
+  "private": true,
+  "description": "MomoPulse — MomoSwap Launchpad Terminal & Bonding Curve Manager for Cookie Chain (SVM)",
+  "license": "MIT",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,css}\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "positions": "tsx scripts/positions.ts",
+    "fixtures": "tsx scripts/record-fixtures.ts"
+  },
+  "dependencies": {
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-nightly": "^0.1.16",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/web3.js": "^1.98.4",
+    "@tanstack/react-query": "^5.62.7",
+    "bs58": "^5.0.0",
+    "buffer": "^6.0.3",
+    "next": "^14.2.35",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.10",
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^14.2.35",
+    "postcss": "^8.4.49",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "overrides": {
+    "@types/react": "^18.3.17",
+    "@types/react-dom": "^18.3.5"
+  }
+}
